@@ -50,9 +50,7 @@ def scrap_div():
             EC.element_to_be_clickable((By.CSS_SELECTOR, "[data-test='have-account']"))
         )
         have_account_button.click()
-
         time.sleep(3)
-
         email = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "[data-test='email-input']"))
             )
@@ -92,12 +90,10 @@ def scrap_div():
 
 def git_automate(repo_path):
     try:
-        # Initialize the repository
         repo = git.Repo(repo_path)       
         repo.git.checkout('dailyrun')
         repo.git.add('duolingo.json')
         if repo.is_dirty():
-        # Commit the changes
             repo.git.commit('-m', 'Update Duolingo stats')
             repo.git.push('origin', 'dailyrun')
             print(f"Changes pushed to branch: dailyrun")
