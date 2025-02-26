@@ -28,6 +28,7 @@ def past_midnight(time):
     update = datetime.fromtimestamp(time, CST)
     now = datetime.now(CST)
     midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    print("update", update, "midnight", midnight)
     return update < midnight
 
 def scrap_div():
@@ -110,12 +111,15 @@ def getStats():
         data = json.loads(cache)
         lastTime = data.get("timestamp",0)
         if not past_midnight(lastTime):
+            print("Path - ",os.getenv("REPO_PATH"))
+            git_automate('.')
             return jsonify(data)
     scrap_div()
     cache = redis_client.get("duolingo")
     if cache:
         data = json.loads(cache)
-        git_automate(os.getenv("REPO_PATH"))
+        print("Path - ",os.getenv("REPO_PATH"))
+        git_automate('.')
         return jsonify(data)
     return jsonify({"error": "Failed to retrieve data"}), 500
 
