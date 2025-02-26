@@ -105,8 +105,3 @@ What started as a simple portfolio enhancement turned into a hands-on exercise i
 
 Would love to hear if you’ve tackled similar challenges! 🚀  
 
-
-Conclusion
-What started as a simple portfolio enhancement turned into a hands-on exercise in web scraping, caching, automation, and GitHub workflows. This project successfully bridges the gap where an API doesn't exist, but does so with a structured and responsible approach.
-
-Would love to hear if you’ve tackled similar challenges! 🚀
