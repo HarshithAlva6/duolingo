@@ -30,7 +30,6 @@ jobs:
         env:
           DUOLINGO_EMAIL: ${{ secrets.DUOLINGO_EMAIL }}
           DUOLINGO_PASSWORD: ${{ secrets.DUOLINGO_PASSWORD }}
-          REPO_PATH: ${{ secrets.REPO_PATH }}
         run: |
           python stats.py &
 

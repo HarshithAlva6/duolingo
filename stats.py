@@ -28,7 +28,6 @@ def past_midnight(time):
     update = datetime.fromtimestamp(time, CST)
     now = datetime.now(CST)
     midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    print("update", update, "midnight", midnight)
     return update < midnight
 
 def scrap_div():
@@ -43,7 +42,6 @@ def scrap_div():
 
     DUOLINGO_EMAIL = os.getenv("DUOLINGO_EMAIL")
     DUOLINGO_PASSWORD = os.getenv("DUOLINGO_PASSWORD")
-    REPO_PATH = os.getenv("REPO_PATH")
 
     try:
         driver.get("https://www.duolingo.com")
@@ -75,14 +73,12 @@ def scrap_div():
 
         stats = soup.find_all("div", class_="_2Hzv5")  
         stats_html = [str(div) for div in stats]
-        #for idx, div in enumerate(stats, start=1):
-        #    print(div.get_text(strip=True))
         # Cache the stats in Redis
         newdata = {"timestamp": time.time(), "stats": stats_html}
         redis_client.set("duolingo", json.dumps(newdata))
         
         # Write the stats to a local JSON file
-        with open(os.path.join(REPO_PATH, 'duolingo.json'), 'w') as json_file:
+        with open("duolingo.json", 'w') as json_file:
             json.dump(newdata, json_file)
     except Exception as e:
         print(f"Error: {e}")
@@ -92,12 +88,12 @@ def scrap_div():
 def git_automate(repo_path):
     try:
         repo = git.Repo(repo_path)       
-        repo.git.checkout('dailyrun')
+        #repo.git.checkout('dailyrun')
         repo.git.add('duolingo.json')
         if repo.is_dirty():
             repo.git.commit('-m', 'Update Duolingo stats')
             repo.git.push('origin', 'dailyrun')
-            print(f"Changes pushed to branch: dailyrun")
+            print(f"Changes pushed to branch")
         else:
             print("No changes to commit.")
 
@@ -111,14 +107,11 @@ def getStats():
         data = json.loads(cache)
         lastTime = data.get("timestamp",0)
         if not past_midnight(lastTime):
-            print("Path - ",os.getenv("REPO_PATH"))
-            git_automate('.')
             return jsonify(data)
     scrap_div()
     cache = redis_client.get("duolingo")
     if cache:
         data = json.loads(cache)
-        print("Path - ",os.getenv("REPO_PATH"))
         git_automate('.')
         return jsonify(data)
     return jsonify({"error": "Failed to retrieve data"}), 500
