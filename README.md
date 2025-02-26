@@ -26,7 +26,7 @@ Scraping Duolingo’s UI Directly:
 Since there’s no API, the only option was to extract the data directly from Duolingo’s UI via web scraping.
 However, scraping brings its own set of challenges, including login authentication, dynamic elements, and rate limits.
 Challenges & Issues Faced
-1️⃣ Handling Authentication & Session Persistence
+1. Handling Authentication & Session Persistence
 Issue:
 
 Duolingo requires login authentication, meaning I had to automate login while maintaining a session.
@@ -35,7 +35,7 @@ Solution:
 ✔ Implemented persistent login with Selenium, handling cookies and session storage.
 ✔ Used explicit waits to ensure login completion before proceeding.
 
-2️⃣ Avoiding Redundant Scraping Requests
+2️. Avoiding Redundant Scraping Requests
 Issue:
 
 If I scrape Duolingo every time the portfolio loads, it would be inefficient and could lead to being flagged.
@@ -45,7 +45,7 @@ Solution:
 
 If today’s data exists in the cache, serve it instantly without scraping.
 If midnight has passed, trigger a fresh scrape and update the cache.
-3️⃣ Automating GitHub Updates Without Cluttering Commits
+3️. Automating GitHub Updates Without Cluttering Commits
 Issue:
 
 The scraped data needed to be pushed to GitHub, but pushing daily updates would clutter the commit history.
@@ -55,7 +55,7 @@ Solution:
 ✔ Implemented logic to only commit & push if new data exists.
 ✔ Set up GitHub Actions to trigger deployments while keeping the main branch clean.
 
-4️⃣ Running the Automation on GitHub Actions: Security & Permission Issues
+4️. Running the Automation on GitHub Actions: Security & Permission Issues
 Issue:
 
 Initially, I wanted GitHub Actions to handle the entire scraping + push automation.
