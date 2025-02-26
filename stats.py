@@ -28,6 +28,7 @@ def past_midnight(time):
     update = datetime.fromtimestamp(time, CST)
     now = datetime.now(CST)
     midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    print("update", update, "midnight", midnight)
     return update < midnight
 
 def scrap_div():
@@ -50,9 +51,7 @@ def scrap_div():
             EC.element_to_be_clickable((By.CSS_SELECTOR, "[data-test='have-account']"))
         )
         have_account_button.click()
-
         time.sleep(3)
-
         email = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "[data-test='email-input']"))
             )
@@ -92,12 +91,10 @@ def scrap_div():
 
 def git_automate(repo_path):
     try:
-        # Initialize the repository
         repo = git.Repo(repo_path)       
         repo.git.checkout('dailyrun')
         repo.git.add('duolingo.json')
         if repo.is_dirty():
-        # Commit the changes
             repo.git.commit('-m', 'Update Duolingo stats')
             repo.git.push('origin', 'dailyrun')
             print(f"Changes pushed to branch: dailyrun")
@@ -114,12 +111,15 @@ def getStats():
         data = json.loads(cache)
         lastTime = data.get("timestamp",0)
         if not past_midnight(lastTime):
+            print("Path - ",os.getenv("REPO_PATH"))
+            git_automate('.')
             return jsonify(data)
     scrap_div()
     cache = redis_client.get("duolingo")
     if cache:
         data = json.loads(cache)
-        git_automate(os.getenv("REPO_PATH"))
+        print("Path - ",os.getenv("REPO_PATH"))
+        git_automate('.')
         return jsonify(data)
     return jsonify({"error": "Failed to retrieve data"}), 500
 
