@@ -88,7 +88,7 @@ def scrap_div():
 def git_automate(repo_path):
     try:
         repo = git.Repo(repo_path)       
-        #repo.git.checkout('dailyrun')
+        repo.git.checkout('dailyrun')
         repo.git.add('duolingo.json')
         if repo.is_dirty():
             repo.git.commit('-m', 'Update Duolingo stats')
