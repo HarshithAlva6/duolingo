@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 import os
 import redis
@@ -35,9 +36,10 @@ def scrap_div():
     #options.headless = True 
     load_dotenv(override=True)
 
-    chromedriver_path = "./ChromeDriver/chromedriver.exe" 
+    #chromedriver_path = "./ChromeDriver/chromedriver.exe" 
 
-    service = Service(executable_path=chromedriver_path)
+    service = Service(ChromeDriverManager().install())
+    #service = Service(executable_path=chromedriver_path)
     driver = webdriver.Chrome(service=service, options=options)
 
     DUOLINGO_EMAIL = os.getenv("DUOLINGO_EMAIL")
