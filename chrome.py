@@ -184,7 +184,7 @@ def getStats():
             if stats:
                 freshdata = {"timestamp": time.time(), "stats": stats}
                 redis_client.set("duolingo", json.dumps(freshdata))
-                with open("stats.json", "w") as file:
+                with open("duolingo.json", "w") as file:
                     json.dump(freshdata, file)
                 print("Fresh data fetched, cached and saved to file.")
             else:
@@ -197,7 +197,7 @@ def getStats():
         if stats:
             freshdata = {"timestamp": time.time(), "stats": stats}
             redis_client.set("duolingo", json.dumps(freshdata))  
-            with open("stats.json", "w") as file:
+            with open("duolingo.json", "w") as file:
                 json.dump(freshdata, file)
             print("Fresh data fetched and cached.")
         else:
