@@ -159,6 +159,11 @@ def scrap_div():
         #for idx, div in enumerate(stats, start=1):
         #    print(div.get_text(strip=True))
         print("Successfully fetched stats.")
+        # Save to duolingo.json for CI/git automation
+        freshdata = {"timestamp": time.time(), "stats": stats_html}
+        with open("duolingo.json", "w") as file:
+            json.dump(freshdata, file)
+        print("Fresh data fetched and saved to duolingo.json.")
         return stats_html
     except Exception as e:
         print(f"Error: {e}")
