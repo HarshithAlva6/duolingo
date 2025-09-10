@@ -8,6 +8,7 @@
 Terminals (Run two) -
 1. > redis-server
 To confirm check : netstat -ano | findstr :6379
+cmd.exe /c "taskkill /PID 6496 /F"
 2. > python chrome.py
 
 # **Duolingo to Portfolio: Scraping, Automation & Deployment**  

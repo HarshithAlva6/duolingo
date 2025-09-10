@@ -6,3 +6,5 @@ Flask-Cors==5.0.0
 redis==5.2.1
 pytz==2024.2
 gitpython
+webdriver_manager
+undetected-chromedriver

@@ -18,7 +18,8 @@ import pytz
 import time
 import json
 import random
-#from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.action_chains import ActionChains
+import undetected_chromedriver as uc
 
 
 #app = Flask(__name__)
@@ -43,36 +44,21 @@ def random_input(element, text):
         time.sleep(random_typing_delay())
 
 def scrap_div():
-    options = Options()
+    # Use undetected-chromedriver for stealth
+    options = uc.ChromeOptions()
     #options.headless = False
-    #options.binary_location = "/usr/bin/google-chrome" 
-    options.add_argument("--headless")
-    options.add_argument("--no-sandbox")  
-    options.add_argument("--disable-dev-shm-usage")  
-    options.add_argument("--remote-debugging-port=9222")  
-    options.add_argument("--disable-gpu")  
-    options.add_argument("--window-size=1920,1080")  
-    options.add_argument("--start-maximized")
-    options.add_argument("--enable-features=NetworkService,NetworkServiceInProcess")
-    options.add_argument("--disable-software-rasterizer")
-    options.add_argument("--incognito")
     load_dotenv(override=True)
-
-    #chromedriver_path = "./ChromeDriver/chromedriver.exe" 
-    user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-    options.add_argument(f"user-agent={user_agent}")
-    #options.add_argument(r"user-data-dir=C:\Users\harsh\AppData\Local\Google\Chrome\User Data\Default")
-    #service = Service(executable_path="/usr/local/bin/chromedriver")
-    service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service, options=options)
-    driver.delete_all_cookies()
+    user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    options.add_argument(f'--user-agent={user_agent}')
+    driver = uc.Chrome(options=options)
+    # Open Duolingo before anything else
+    print("Opening Duolingo website...")
+    driver.get("https://www.duolingo.com")
+    time.sleep(3)
+    # Removed driver.delete_all_cookies() for session persistence
     DUOLINGO_EMAIL = os.getenv("DUOLINGO_EMAIL")
     DUOLINGO_PASSWORD = os.getenv("DUOLINGO_PASSWORD")
     try:
-        print("Opening Duolingo website...")
-        driver.get("https://www.duolingo.com")
-        wait = WebDriverWait(driver, 15)
-
         print("Clicking 'Already have an account' button...")
         account = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, "[data-test='have-account']"))
@@ -82,50 +68,60 @@ def scrap_div():
         time.sleep(10)
 
         print("Waiting for email input field...")
-        email = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "[data-test='email-input']")))
-        password = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "[data-test='password-input']")))
+        email = WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.CSS_SELECTOR, "[data-test='email-input']")))
+        password = WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.CSS_SELECTOR, "[data-test='password-input']")))
 
-        email.send_keys(DUOLINGO_EMAIL)
-        WebDriverWait(driver, 10).until(lambda driver: email.get_attribute("value") == DUOLINGO_EMAIL)
+        # Use ActionChains for typing email and password with delays
+        actions = ActionChains(driver)
+        actions.click(email)
+        for char in DUOLINGO_EMAIL:
+            actions.send_keys(char)
+            actions.pause(random_typing_delay())
+        actions.click(password)
+        for char in DUOLINGO_PASSWORD:
+            actions.send_keys(char)
+            actions.pause(random_typing_delay())
+        # Tab out of password field
+        actions.send_keys(Keys.TAB)
+        actions.perform()
 
-        # Trigger email input events
-        driver.execute_script("arguments[0].dispatchEvent(new Event('input', { bubbles: true }));", email)
-        driver.execute_script("arguments[0].dispatchEvent(new Event('change', { bubbles: true }));", email)
+        time.sleep(1)
 
-        #password.send_keys(DUOLINGO_PASSWORD)
-        #for char in DUOLINGO_PASSWORD:
-            #password.send_keys(char)
-        random_input(password, DUOLINGO_PASSWORD)
-        time.sleep(0.3)
-        WebDriverWait(driver, 10).until(lambda driver: password.get_attribute("value") == DUOLINGO_PASSWORD)
-
-        # Print password value for debugging
+        # Print values for debugging
+        print("Entered email:", email.get_attribute("value"))
         print("Entered password:", password.get_attribute("value"))
 
-        driver.execute_script("arguments[0].dispatchEvent(new Event('input', { bubbles: true }));", password)
-        driver.execute_script("arguments[0].dispatchEvent(new Event('change', { bubbles: true }));", password)
+        # Blur password field to trigger any JS events
+        driver.execute_script("arguments[0].blur();", password)
+        time.sleep(1)
 
-        print("Password after events:", password.get_attribute("value"))
-        if password.get_attribute("value") == DUOLINGO_PASSWORD:
-            print("Password entered correctly!")
-        else:
-            print("Password mismatch!")
         login_button = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, "[data-test='register-button']"))
         )
 
+        # Try clicking login button, retry if error appears
         login_button.click()
+        print("Clicked login button once.")
+        time.sleep(3)
+        # Check for error message or if still on login page
+        if "password" in driver.page_source.lower():
+            print("First login attempt may have failed, trying again...")
+            login_button = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, "[data-test='register-button']"))
+            )
+            driver.execute_script("arguments[0].click();", login_button)
+            print("Clicked login button a second time with JS.")
         driver.save_screenshot("debug_after_click.png")
         WebDriverWait(driver, 40).until(lambda d: d.execute_script("return document.readyState") == "complete")
-
-        # Save a screenshot
         driver.save_screenshot("debug_after_login.png")
-        print("Logged in successfully!")
+        # Print page source after login for error analysis
+        print("Page source after login:")
+        print(driver.page_source)
+        print("Logged in, waiting for profile tab...")
 
         time.sleep(10)
         print("Logged in, waiting for profile tab...")
         try:
-            print(driver.page_source)
             print("Waiting for the page to fully load...")
             WebDriverWait(driver, 40).until(lambda d: d.execute_script("return document.readyState") == "complete")
             print("Page loaded.")
