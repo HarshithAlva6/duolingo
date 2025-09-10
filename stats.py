@@ -18,6 +18,9 @@ import pytz
 import time
 import json
 import git
+import sys
+sys.path.append('.')  # Ensure current directory is in path
+from chrome import scrap_div
 
 
 app = Flask(__name__)
@@ -30,62 +33,6 @@ def past_midnight(time):
     now = datetime.now(CST)
     midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
     return update < midnight
-
-def scrap_div():
-    options = Options()
-    #options.headless = True 
-    load_dotenv(override=True)
-
-    #chromedriver_path = "./ChromeDriver/chromedriver.exe" 
-
-    service = Service(ChromeDriverManager().install())
-    #service = Service(executable_path=chromedriver_path)
-    driver = webdriver.Chrome(service=service, options=options)
-
-    DUOLINGO_EMAIL = os.getenv("DUOLINGO_EMAIL")
-    DUOLINGO_PASSWORD = os.getenv("DUOLINGO_PASSWORD")
-
-    try:
-        driver.get("https://www.duolingo.com")
-        have_account_button = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, "[data-test='have-account']"))
-        )
-        have_account_button.click()
-        time.sleep(3)
-        email = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "[data-test='email-input']"))
-            )
-        password = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "[data-test='password-input']"))
-        )
-
-        email.send_keys(DUOLINGO_EMAIL)
-        time.sleep(1)
-        password.send_keys(DUOLINGO_PASSWORD)
-        time.sleep(5)
-        password.send_keys(Keys.RETURN) 
-
-        time.sleep(10)
-
-        profile = driver.find_element(By.CSS_SELECTOR, "[data-test='profile-tab']")  
-        profile.click()
-        time.sleep(5)
-
-        soup = BeautifulSoup(driver.page_source, "html.parser")
-
-        stats = soup.find_all("div", class_="_2Hzv5")  
-        stats_html = [str(div) for div in stats]
-        # Cache the stats in Redis
-        newdata = {"timestamp": time.time(), "stats": stats_html}
-        redis_client.set("duolingo", json.dumps(newdata))
-        
-        # Write the stats to a local JSON file
-        with open("duolingo.json", 'w') as json_file:
-            json.dump(newdata, json_file)
-    except Exception as e:
-        print(f"Error: {e}")
-    finally:
-        driver.quit() 
 
 def git_automate(repo_path):
     try:
