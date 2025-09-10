@@ -46,12 +46,16 @@ def random_input(element, text):
 def scrap_div():
     # Use undetected-chromedriver for stealth
     options = uc.ChromeOptions()
-    #options.headless = False
     load_dotenv(override=True)
     user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
     options.add_argument(f'--user-agent={user_agent}')
-    # Only use --user-data-dir if not running in CI/production
-    if not os.environ.get('GITHUB_ACTIONS'):
+    if os.environ.get('GITHUB_ACTIONS'):
+        # Add extra flags for CI/CD
+        options.add_argument('--headless=new')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--disable-gpu')
+    else:
         options.add_argument(r'--user-data-dir=C:\\Users\\harsh\\AppData\\Local\\Google\\Chrome\\SeleniumProfile')
     driver = uc.Chrome(options=options)
     # Open Duolingo before anything else
